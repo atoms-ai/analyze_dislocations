@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Dislocation binning and plotting
+Dislocation binning, histogram fitting and plotting for any QCGD systems (generic)
 
 @author: Sumit
 """
@@ -16,9 +16,18 @@ import pandas as pd
 from scipy import stats
 
 
-df = pd.read_csv('100nm_sc1000mps_MD_150ps.dat', delimiter='\t')
-            
+########################### System and QCGD-LOC #############################
+Acg = 64
+dia = 20000.0         # Particle diameter in Angstroms
+vol = (4/3)*math.pi*((dia/2)**3)
 
+df = pd.read_csv("2um_sc1000mps_L%i_800ps.dat" %Acg, delimiter='\t')
+
+disloc_len_max = Acg*100
+plot_tick_len = Acg*20
+
+#################################################################################
+          
 #Specific BV family analysis 
 #bvf=2   #(1-Perfect, 2- Shockley, 3- SR, 4 - Hirth, 5 - Frank, 6 - GB1, 7 - GB2)
 #df = df[df['Family'] == bvf]
@@ -28,8 +37,8 @@ num_dis = len(df)       # num of dislocations
 disloc_type = df.iloc[:,0].values     
 disloc_len = df.iloc[:,1].values 
 
-n_bins = 50     # num of bins
-N, bins, patches = plt.hist(disloc_len, bins=n_bins, density=True, range=[0, 100])
+n_bins = 100     # num of bins
+N, bins, patches = plt.hist(disloc_len, bins=n_bins, density=True, range=[0, disloc_len_max])
 
 # color code by height, but you could use any scalar
 fracs = N / N.max()
@@ -42,58 +51,31 @@ for thisfrac, thispatch in zip(fracs, patches):
     color = plt.cm.coolwarm(norm(thisfrac))
     thispatch.set_facecolor(color)
 
-# We can also normalize our inputs by the total number of counts
-#plt.hist(disloc_len, bins=n_bins, density=True)
-
-#Fitting
+#Discretizing x values
 xt = plt.xticks()[0]  
-#xmin, xmax = min(xt), max(xt)  
-xmin, xmax = 0, 100  
+xmin, xmax = 0, disloc_len_max  
 lnspc = np.linspace(xmin, xmax, len(disloc_len))
 
-#Beta fitting
-#ab,bb,cb,db = stats.beta.fit(disloc_len)  
-#pdf_beta = stats.beta.pdf(lnspc, ab, bb,cb, db)  
-#plt.plot(lnspc, pdf_beta, label="Beta")
-
 #########################  Log normal fitting  ###############################
+
 shape, loc, scale = stats.lognorm.fit(disloc_len, floc=0) 
 pdf_lognorm = stats.lognorm.pdf(lnspc, shape, loc, scale) 
 plt.plot(lnspc, pdf_lognorm, color = "k", label="Lognormal")
-plt.legend()
-
-#########################  L2 fitting ###############################
-
-shape_l2 = 0.694752
-scale_l2 = 22.928668/2
-loc_l2 = 0.0
-
-t = 0
-xval = np.arange(1, 100, 1)
-L2fit = [None] * len(xval)
-L2fit[0] = 0            #explicitly setting first value to zero to avoid math domain error in the loop
-
-for i in range(1, 99, 1):
-    L2fit[t+1] = 1 / (shape_l2*((i)/scale_l2)*math.sqrt(2*math.pi)) * math.exp(-1/2*(math.log((i)/scale_l2)/shape_l2)**2) / scale_l2
-    t = t+1
-
-plt.plot(xval, L2fit, label="L2_fit", color="r", marker = ".") # Create line plot with lognormal equation
 plt.legend()
 
 #########################################################################
 
 
 ax = plt.axes()
-plt.ylabel('Probability density', fontsize=12, fontname='Times New Roman')
+plt.ylabel('Probability', fontsize=12, fontname='Times New Roman')
 plt.xlabel('Dislocation Length (Å)', fontsize=12, fontname='Times New Roman')
 pylab.xticks(fontsize=10, fontname='Times New Roman')
 pylab.yticks(fontsize=10, fontname='Times New Roman')
-ax.xaxis.set_major_locator(ticker.MultipleLocator(20))
-plt.text(0.6, 0.6, "Number of dislocations = %i \n\n MD (t = 150 ps)" % num_dis + "\n\n α(fit) = %f" %scale_l2 + 
-         ", σ(fit) = %f" %shape_l2, 
+ax.xaxis.set_major_locator(ticker.MultipleLocator(plot_tick_len))
+plt.text(0.6, 0.6, "Number of dislocations = %i" %num_dis + "\n\n L%i (t = 800 ps)"  %Acg + "\n\n α(fit) = %f" %scale + ", σ(fit) = %f" %shape,       
          horizontalalignment='center', verticalalignment='center', fontname='Times New Roman', 
          transform=ax.transAxes)
-plt.savefig('100nm_sc1000_150ps_L2FITMD_histogram.png', dpi=300, facecolor='w', edgecolor='w', bbox_inches = 'tight', format='png')
+plt.savefig("2um_sc1000_800ps_hist_L%i.png" %Acg, dpi=300, facecolor='w', edgecolor='w', bbox_inches = 'tight', format='png')
 plt.show()
 
 

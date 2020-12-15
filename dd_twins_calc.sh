@@ -18,7 +18,7 @@ timestep=0.002
 	numat=`grep -F 'Reading ' Ta110_compression_300K.${i}.analysis.log | tail -1 | awk {'print $2'}`
 
 	tot_new=$(awk -v v1=$total -v v2=$other 'BEGIN {print v1-v2}')
-	t=$(echo "scale=6;$timestep*$i-20" | bc)
+	t=$(echo "scale=6;$timestep*$i" | bc)
 	twfrac=$(echo "scale=6;$twin/$numat" | bc)
 
 	#Converting time to integer value (if needed)

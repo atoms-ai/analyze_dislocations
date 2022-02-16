@@ -1,11 +1,7 @@
 # Dislocations
-Codes to post process dislocation analysis files from ovito
+Codes to post process dislocation analysis files from ovito<br />
 
-Fortran codes for analysis of MD simulations<br />
-<br />
-Mostly used for meshing the paritcle-substrate simulation setup to compute pressure, temperature and other thermodyanmic properties<br />
-<br />
-- Dimensional analysis - Computes a real time particle height and width during deformation <br />
-- Interface_PT - Computes the local pressure and temperatures for a thin region (user defined) at the particle/substrate interface<br />
-- Analysis_2D_Pcorr - 2D meshing and bin-averaging the temperatures, pressures, velocities, etc for the whole system<br />
-- automate_2D - Bash job script for running on multiple QCGD levels
+- dd_twins_calc.sh - Calculate the # of twin boundary atoms from a given Crystal Analysis Tool (Stukowski) processed dump file <br />
+- disloc_extract.py - Extract number and type of dislocations from a .vtk file <br />
+- disloc_hist.py - Histogram plots for dislocation lengths from disloc_extract.py <br />
+- disloc_predict_2um.py - Example for curve fitting dislocation histograms to understand tends <br />
